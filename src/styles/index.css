@@ -1,0 +1,36 @@
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-paper font-sans text-[16px] leading-[1.6] text-ink antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(255, 90, 31, 0.22); }
+  :focus-visible { outline: 2.5px solid #FF5A1F; outline-offset: 3px; border-radius: 8px; }
+  h1, h2, h3 { @apply font-display text-ink; font-optical-sizing: auto; letter-spacing: -0.035em; }
+  img { -webkit-user-drag: none; }
+}
+
+@layer components {
+  .page { @apply mx-auto w-full max-w-page px-5 sm:px-8; }
+  .flame-text {
+    background: linear-gradient(100deg, #FF5A1F 10%, #FF3D5A 55%, #EC2A78 95%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .flame-bg { background: linear-gradient(120deg, #FF6A1F 0%, #FF3D4E 55%, #EC2A78 100%); }
+  .grain::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
