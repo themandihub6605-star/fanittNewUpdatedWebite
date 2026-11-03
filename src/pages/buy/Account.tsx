@@ -1,6 +1,7 @@
 // File: src/pages/buy/Account.tsx  (fanitt-website)
+import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { Crown, LogOut, Receipt } from 'lucide-react';
+import { Check, Copy, Crown, ExternalLink, LogOut, Receipt, UserRound } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { rupees, when } from '@/lib/format';
@@ -57,6 +58,8 @@ export default function Account() {
           )}
         </Card>
 
+        {u.role === 'creator' && <PublicPageCard />}
+
         <Card>
           <h2 className="flex items-center gap-2 font-display text-[20px] font-extrabold"><Receipt size={18} /> Your purchases</h2>
           {loading && !data ? (
@@ -88,5 +91,52 @@ export default function Account() {
         </Card>
       </div>
     </BuyPage>
+  );
+}
+
+/** Creators: their public page link — to open, or copy into an Instagram bio etc. */
+function PublicPageCard() {
+  const { session } = useAuth();
+  const { data: slug } = useLoad(() => api<{ slug?: string }>('/creators/me').then((r) => r.data.slug || ''), [session?.user._id]);
+  const [copied, setCopied] = useState(false);
+  if (!slug) return null;
+
+  const path = `/open/creator/${encodeURIComponent(slug)}`;
+  const url = `${window.location.origin}${path}`;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      // Older browsers: select-and-copy fallback.
+      const input = document.createElement('input');
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand('copy');
+      input.remove();
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Card>
+      <h2 className="flex items-center gap-2 font-display text-[20px] font-extrabold"><UserRound size={18} /> Your public page</h2>
+      <p className="mt-1 text-[14px] text-ink-soft">Share this link anywhere — fans can see and buy everything you offer.</p>
+      <div className="mt-4 flex items-center gap-2 rounded-2xl border border-ink/10 bg-sand/60 p-2 pl-4">
+        <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-ink">{url.replace(/^https?:\/\//, '')}</span>
+        <button
+          type="button"
+          onClick={copy}
+          className="flame-bg flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-4 text-[14px] font-bold text-white"
+        >
+          {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <Link to={path} className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-bold text-flame">
+        <ExternalLink size={14} /> Open my page
+      </Link>
+    </Card>
   );
 }
