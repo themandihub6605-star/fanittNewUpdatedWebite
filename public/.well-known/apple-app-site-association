@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["U4PTY7FLVV.fanitt.comapp.fanittapp"],
+        "components": [
+          { "/": "/open/post/*", "comment": "Posts open in the app" },
+          { "/": "/open/campaign/*", "comment": "Campaigns open in the app" },
+          { "/": "/open/brand/*", "comment": "Brand profiles open in the app" }
+        ]
+      }
+    ]
+  }
+}
