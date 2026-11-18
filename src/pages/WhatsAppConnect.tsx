@@ -87,7 +87,7 @@ export default function WhatsAppConnect() {
 
   // Embedded Signup gives the code (FB.login) and the number ids (a window
   // message) separately — whichever comes second finishes the connection.
-  const signup = useRef<{ code?: string; wabaId?: string; phoneNumberId?: string }>({});
+  const signup = useRef<{ code?: string; wabaId?: string; phoneNumberId?: string; coexistence?: boolean }>({});
 
   const loadAccount = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -114,13 +114,13 @@ export default function WhatsAppConnect() {
   }, [account, loadAccount]);
 
   const finishConnect = useCallback(async () => {
-    const { code, wabaId, phoneNumberId } = signup.current;
+    const { code, wabaId, phoneNumberId, coexistence } = signup.current;
     if (!code || !wabaId || !phoneNumberId) return;
     signup.current = {};
     setBusy('connect');
     setError('');
     try {
-      const { data } = await api<Account>('/whatsapp/connect', { body: { code, wabaId, phoneNumberId } });
+      const { data } = await api<Account>('/whatsapp/connect', { body: { code, wabaId, phoneNumberId, coexistence: !!coexistence } });
       setAccount(data);
       setNotice('Your WhatsApp Business number is connected.');
     } catch (e) {
@@ -139,6 +139,7 @@ export default function WhatsAppConnect() {
         if (data?.type !== 'WA_EMBEDDED_SIGNUP') return;
         if (data.event === 'FINISH' || data.event === 'FINISH_ONLY_WABA' || data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') {
           signup.current.wabaId = data.data?.waba_id;
+          if (data.event === 'FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING') signup.current.coexistence = true;
           signup.current.phoneNumberId = data.data?.phone_number_id;
           if (!signup.current.phoneNumberId) {
             setError('No phone number was added in the popup. Please connect again and add a number.');
@@ -161,7 +162,9 @@ export default function WhatsAppConnect() {
     return () => window.removeEventListener('message', onMessage);
   }, [finishConnect]);
 
-  const startConnect = async () => {
+  // businessApp: the number already runs on the WhatsApp Business app — keep the
+  // app and connect it too (Meta "coexistence"); otherwise a new number.
+  const startConnect = async (businessApp = false) => {
     setError('');
     setNotice('');
     if (!APP_ID || !CONFIG_ID) {
@@ -169,6 +172,7 @@ export default function WhatsAppConnect() {
       return;
     }
     setBusy('connect');
+    signup.current = { coexistence: businessApp };
     try {
       const FB = await loadFacebookSdk();
       FB.login(
@@ -185,7 +189,7 @@ export default function WhatsAppConnect() {
           config_id: CONFIG_ID,
           response_type: 'code',
           override_default_response_type: true,
-          extras: { setup: {}, featureType: '', sessionInfoVersion: '3', version: 'v4' },
+          extras: { setup: {}, featureType: businessApp ? 'whatsapp_business_app_onboarding' : '', sessionInfoVersion: '3', version: 'v4' },
         },
       );
     } catch (e) {
@@ -294,9 +298,17 @@ export default function WhatsAppConnect() {
               <li>Choose or create your business and WhatsApp Business account.</li>
               <li>Add your phone number and verify it with the code.</li>
             </ol>
-            <PayButton busy={busy === 'connect'} onClick={startConnect}>
-              {busy === 'connect' ? 'Connecting…' : 'Connect WhatsApp'}
+            <PayButton busy={busy === 'connect'} onClick={() => startConnect(true)}>
+              {busy === 'connect' ? 'Connecting…' : 'Connect my WhatsApp Business app number'}
             </PayButton>
+            <button
+              type="button"
+              onClick={() => startConnect(false)}
+              disabled={busy === 'connect'}
+              className="h-12 w-full rounded-2xl border border-ink/10 text-[15px] font-bold text-ink-soft hover:bg-ink/5 disabled:opacity-50"
+            >
+              Connect a new number (not on WhatsApp)
+            </button>
             <WhoAmI />
           </div>
         ) : (
