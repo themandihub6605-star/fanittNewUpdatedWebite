@@ -22,6 +22,8 @@ const Account = lazy(() => import('@/pages/buy/Account'));
 const DeleteAccount = lazy(() => import('@/pages/buy/DeleteAccount'));
 // Connect a WhatsApp Business number (Meta Embedded Signup).
 const WhatsAppConnect = lazy(() => import('@/pages/WhatsAppConnect'));
+// Connect Instagram + Auto DM (Instagram Login).
+const InstagramConnect = lazy(() => import('@/pages/InstagramConnect'));
 
 function LegalBySlug() {
   const { slug = '' } = useParams();
@@ -71,6 +73,7 @@ export default function App() {
             <Route path="/delete-account" element={<DeleteAccount />} />
             <Route path="/pro" element={<ProPlans />} />
             <Route path="/connect/whatsapp" element={<WhatsAppConnect />} />
+            <Route path="/connect/instagram" element={<InstagramConnect />} />
             <Route path="/open/:type/:id" element={<OpenLink />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
